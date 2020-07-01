@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+    <category id="general" label="General">
+        <setting id="enable_service" label="Enable Video OSD button (may require Kodi restart)" type="bool" default="true"></setting>
+        <setting id="max_video_resolution" type="labelenum" label="Max video resolution (video height)" values="240|360|480|576|720|1080|2160" default="1080" />
+        <setting id="individual_uploader_directory" label="Download individual videos into uploader subdirectory" type="bool" default="false"></setting>
+        <setting id="playlist_sub_directory" label="Download playlist into subdirectory" type="bool" default="false"></setting>
+        <setting id="filename_upload_year" label="Add upload year to filename" type="bool" default="true"></setting>
+        <setting id="filename_resolution" label="Add resolution to filename" type="bool" default="true"></setting>
+	<setting id="clean_filename" label="Remove variants of 'Official Music Video' from filename" type="bool" default="true"></setting>
+    </category>
+</settings>

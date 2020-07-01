@@ -1,0 +1,15 @@
+<!-- context.youtube.dl.menu_start -->
+<control type="radiobutton" id="70099">
+    <include content="OSDButton">
+        <param name="texture" value="osd/fullscreen/buttons/record.png"/>
+    </include>
+    <width>64</width>
+    <height>64</height>
+    <label>Download Video</label>
+    <texturefocus>youtube_red.png</texturefocus>
+    <texturenofocus>youtube_gray.png</texturenofocus>
+    <visible>String.Contains(Player.Art(thumb),ytimg)</visible>
+    <onclick>Dialog.Close(VideoOSD)</onclick>
+    <onclick>RunAddon(context.youtube.dl.menu)</onclick>
+</control>
+<!-- context.youtube.dl.menu_end -->
