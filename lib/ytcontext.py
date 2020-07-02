@@ -247,7 +247,7 @@ class main():
                     i+=1
                     url=YOUTUBE_VIDEO_URL % entry['url']
                     LOG("Downloading url "+url, debug=True)
-                    info = {'url': url, 'title': entry['title'], 'id': entry['url'], 'media_type': 'video', 'channel': entry['channel'], 'playlist': entry['playlist'], 'playlist_title': entry['playlist_title']}
+                    info = {'url': url, 'title': entry['title'], 'id': entry['url'], 'media_type': 'video'}
                     LOG("percentage"+str(int(100/amt*i)), debug=True)
                     
                     if sys.version_info.major == 3:
