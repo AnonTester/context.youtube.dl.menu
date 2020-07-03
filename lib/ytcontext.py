@@ -520,11 +520,7 @@ class main():
                 if addon.getSetting('clean_filename') != 'false':
                     #cleaning filename
                     LOG("Cleaning up filename", debug=True)
-                    repls = (' [Official Music Video]', ''), (' [Official Video]', ''), (' [OFFICIAL MUSIC VIDEO]', ''), (' [OFFICIAL VIDEO]', ''), \
-                            (' (Official Music Video)', ''), (' (Official Video)', ''), (' (OFFICIAL MUSIC VIDEO)', ''), (' (OFFICIAL VIDEO)', ''), \
-                            (' (Video)', ''), (' (VIDEO)', ''), \
-                            (' [Video]', ''), (' [VIDEO]', ''),
-                    newfilename = reduce(lambda a, kv: a.replace(*kv), repls, filename)
+                    newfilename = re.sub('(?i)'+'\ ?[\[|\(](official )?(music )?video[\]|\)]\ ?', '', filename) 
                     LOG("Filename now: "+newfilename, debug=True)
                     if xbmcvfs.rename(filename, newfilename):
                         filename = newfilename
