@@ -64,7 +64,7 @@ perc = 0
 addon = xbmcaddon.Addon()
 addonID = addon.getAddonInfo('id')
 if sys.version_info.major == 3:
-    addonFolder = xbmc.translatePath('special://home/addons/'+addonID)
+    addonFolder = xbmcvfs.translatePath('special://home/addons/'+addonID)
 else:
     addonFolder = xbmc.translatePath('special://home/addons/'+addonID).decode('utf-8')
 finalformat = ""
@@ -89,9 +89,22 @@ class MyLogger(object):
     def debug(self, msg):
         global perc
         global pDialog
+        global finalformat
         perc += 20
         LOG("dbg "+msg, debug=True)
         pDialog.update(perc, msg)
+        if 'merged into mkv' in msg:
+            finalformat='mkv'
+        elif 'merged into webm' in msg:
+            finalformat='webm'
+        elif 'merged into mp4' in msg:
+            finalformat='mp4'
+        elif ('Merging formats into' in msg or 'already been downloaded and merged' in msg) and '.webm' in msg:
+            finalformat='webm'
+        elif ('Merging formats into' in msg or 'already been downloaded and merged' in msg) and '.mkv' in msg:
+            finalformat='mkv'
+        elif ('Merging formats into' in msg or 'already been downloaded and merged' in msg) and '.mp4' in msg:
+            finalformat='mp4'
 
     def warning(self, msg):
         global perc
@@ -106,14 +119,12 @@ class MyLogger(object):
             finalformat='webm'
         elif 'merged into mp4' in msg:
             finalformat='mp4'
-        elif 'Merging formats into' in msg and '.webm' in msg:
+        elif ('Merging formats into' in msg or 'already been downloaded and merged' in msg) and '.webm' in msg:
             finalformat='webm'
-        elif 'Merging formats into' in msg and '.mkv' in msg:
+        elif ('Merging formats into' in msg or 'already been downloaded and merged' in msg) and '.mkv' in msg:
             finalformat='mkv'
-        elif 'Merging formats into' in msg and '.mp4' in msg:
+        elif ('Merging formats into' in msg or 'already been downloaded and merged' in msg) and '.mp4' in msg:
             finalformat='mp4'
-        else:
-            finalformat=''
 
     def error(self, msg):
         global perc
@@ -132,7 +143,7 @@ def my_hook_empty(d):
 
 def LOG(msg,debug=False):
     if debug and not DEBUG: return
-    xbmc.log('context.youtube.dl.menu: {0}'.format(msg), xbmc.LOGNOTICE)
+    xbmc.log('context.youtube.dl.menu: {0}'.format(msg), xbmc.LOGINFO)
 
 def ERROR(msg=None,hide_tb=False):
     if msg: LOG('ERROR: {0}'.format(msg))
@@ -140,7 +151,7 @@ def ERROR(msg=None,hide_tb=False):
         errtext = sys.exc_info()[1]
         LOG('%s::%s (%d) - %s' % (msg or '?', sys.exc_info()[2].tb_frame.f_code.co_name, sys.exc_info()[2].tb_lineno, errtext))
         return
-    xbmc.log(traceback.format_exc(), xbmc.LOGNOTICE)
+    xbmc.log(traceback.format_exc(), xbmc.LOGINFO)
 
 class main():
     def __init__(self):
@@ -153,17 +164,17 @@ class main():
         container_url=xbmc.getInfoLabel('container.folderpath')
         #urldecoding url 5 times to account for nested addon-calls
         container_url=urllib.unquote(urllib.unquote(urllib.unquote(urllib.unquote(urllib.unquote(container_url)))))
-        xbmc.log('context.youtube.dl.menu: '+'Container.FolderPath: |%s|' % container_url, xbmc.LOGNOTICE)
+        xbmc.log('context.youtube.dl.menu: '+'Container.FolderPath: |%s|' % container_url, xbmc.LOGINFO)
 
         plugin_url = sys.listitem.getPath()
         #urldecoding url 5 times to account for nested addon-calls
         plugin_url = urllib.unquote(urllib.unquote(urllib.unquote(urllib.unquote(urllib.unquote(plugin_url)))))
-        xbmc.log('context.youtube.dl.menu: '+'ListItem.FileNameAndPath: |%s|' % plugin_url, xbmc.LOGNOTICE)
+        xbmc.log('context.youtube.dl.menu: '+'ListItem.FileNameAndPath: |%s|' % plugin_url, xbmc.LOGINFO)
 
         if plugin_url:
             result = re.search('playlist/(?P<playlist_id>[a-zA-Z0-9_-]+)', plugin_url)
             if result:
-                xbmc.log('context.youtube.dl.menu: '+'Found playlist_id in url: |%s|' % result.group('playlist_id'), xbmc.LOGNOTICE)
+                xbmc.log('context.youtube.dl.menu: '+'Found playlist_id in url: |%s|' % result.group('playlist_id'), xbmc.LOGINFO)
                 playlist_id=result.group('playlist_id')
             else:
                 xbmc.log('context.youtube.dl.menu: '+'playlist_id not found in url '+plugin_url, xbmc.LOGERROR)
@@ -174,7 +185,7 @@ class main():
         if container_url and not playlist_id:
             result = re.search('playlist/(?P<playlist_id>[a-zA-Z0-9_-]+)', container_url)
             if result:
-                xbmc.log('context.youtube.dl.menu: '+'Found playlist_id in container url: |%s|' % result.group('playlist_id'), xbmc.LOGNOTICE)
+                xbmc.log('context.youtube.dl.menu: '+'Found playlist_id in container url: |%s|' % result.group('playlist_id'), xbmc.LOGINFO)
                 playlist_id=result.group('playlist_id')
             else:
                 xbmc.log('context.youtube.dl.menu: '+'playlist_id not found in container url '+plugin_url, xbmc.LOGERROR)
@@ -281,23 +292,23 @@ class main():
 
         if not ytid:
             #Check if listitem property exists
-            if not sys.listitem:
+            if not hasattr(sys, 'listitem'):
                 xbmc.log('context.youtube.dl.menu: Could not obtain video id', xbmc.LOGERROR)
-                return 1
+                return False
 
             container=xbmc.getInfoLabel('container.folderpath')
-            xbmc.log('context.youtube.dl.menu: '+'Container FolderPath: |%s|' % container, xbmc.LOGNOTICE)
+            xbmc.log('context.youtube.dl.menu: '+'Container FolderPath: |%s|' % container, xbmc.LOGINFO)
 
             #Listitem exists, obtaining filename/url to extract video id
             #plugin_url = sys.listitem.getfilename()
             plugin_url = sys.listitem.getPath()
             #urldecoding url 5 times to account for nested addon-calls
             plugin_url = urllib.unquote(urllib.unquote(urllib.unquote(urllib.unquote(urllib.unquote(plugin_url)))))
-            xbmc.log('context.youtube.dl.menu: '+'ListItem.FileNameAndPath: |%s|' % plugin_url, xbmc.LOGNOTICE)
+            xbmc.log('context.youtube.dl.menu: '+'ListItem.FileNameAndPath: |%s|' % plugin_url, xbmc.LOGINFO)
             if plugin_url:
                 result = re.search('video_id=(?P<video_id>[a-zA-Z0-9_-]+)', plugin_url)
                 if result:
-                    xbmc.log('context.youtube.dl.menu: '+'Found video_id in url: |%s|' % result.group('video_id'), xbmc.LOGNOTICE)
+                    xbmc.log('context.youtube.dl.menu: '+'Found video_id in url: |%s|' % result.group('video_id'), xbmc.LOGINFO)
                     video_id=result.group('video_id')
                 else:
                     xbmc.log('context.youtube.dl.menu: '+'video_id not found in url '+plugin_url, xbmc.LOGERROR)
@@ -327,12 +338,15 @@ class main():
         return info
 
     def download(info=None,isPlaylist=False):
-        global pDialog
+        global pDialog, finalformat
         
         #Get url and title for individual download
         if info == None:
             LOG("Obtaining details", debug=True)
             info=main.getYTID()
+            if info == False:
+                xbmcgui.Dialog().notification('youtube-dl error','Youtube ID could not be obtained',os.path.join(addonFolder, "icon.png"),5000,True)
+                return False
 
         LOG(repr(info), debug=True)
 
@@ -365,8 +379,8 @@ class main():
         if yes:
             LOG("Downloading video with youtube-dl "+url, debug=True)
 
-            if xbmc.Player().isPlaying():
-                xbmcgui.Dialog().notification('youtube-dl download started',title,os.path.join(addonFolder, "icon.png"),5000,True)
+            if xbmc.Player().isPlaying() and not isPlaylist:
+                xbmcgui.Dialog().notification('Video download started',title,os.path.join(addonFolder, "icon.png"),5000,True)
 
             pDialog = xbmcgui.DialogProgressBG()
 
@@ -390,11 +404,19 @@ class main():
             else:
                 outtmpl_resolution=''
                 
-            ydl_opts = {
-                'outtmpl': os.path.join(xbmc.translatePath('special://temp'))+'%(title)s'+outtmpl_upload_year+outtmpl_resolution+'.%(ext)s',
-                'nopart': True,
-#                'forcefilename': True,
-                'logger': MyLogger(),
+            if sys.version_info.major == 3:
+                ydl_opts = {
+                    'outtmpl': os.path.join(xbmcvfs.translatePath('special://temp'))+'%(title)s'+outtmpl_upload_year+outtmpl_resolution+'.%(ext)s',
+                    'nopart': True,
+#                    'forcefilename': True,
+                    'logger': MyLogger(),
+                }
+            else:
+                ydl_opts = {
+                    'outtmpl': os.path.join(xbmc.translatePath('special://temp'))+'%(title)s'+outtmpl_upload_year+outtmpl_resolution+'.%(ext)s',
+                    'nopart': True,
+#                    'forcefilename': True,
+                    'logger': MyLogger(),
                 }
             
             #Detailed download update only for individual videos, not during playlist download    
@@ -440,7 +462,7 @@ class main():
 
                 filename = ydl.prepare_filename(ydl_info)
 
-                LOG("ydl_info: "+repr(ydl_info), debug=True)
+                #LOG("ydl_info: "+repr(ydl_info), debug=True)
 
                 #set and create target sub directory if configured to use
                 if isPlaylist==False and addon.getSetting("individual_uploader_directory") == "true":
@@ -470,26 +492,30 @@ class main():
                     targetdir = getDownloadPath()
 
                 #Check if file already downloaded - Note: May have different extension if format needs to be merged!
-                LOG("Check if file already exists in target directory "+os.path.join(targetdir,os.path.basename(filename)), debug=True)
+                LOG("Predownload: Check if file already exists in target directory "+os.path.join(targetdir,os.path.basename(filename)), debug=True)
                 if xbmcvfs.exists(os.path.join(targetdir,os.path.basename(filename))):
-                    LOG("File already exists in target directory "+os.path.basename(filename), debug=True)
+                    LOG("Predownload: File already exists in target directory "+os.path.basename(filename), debug=True)
                     fileinfo_dst=xbmcvfs.Stat(os.path.join(targetdir,os.path.basename(filename)))
                     fileinfo_dst_size=fileinfo_dst.st_size
                     if fileinfo_dst_size == 0:
-                        LOG("Existing file in target directory has filesize of 0, deleting and continue", debug=True)
+                        LOG("Predownload: Existing file in target directory has filesize of 0, deleting and continue", debug=True)
                         xbmcvfs.delete(os.path.join(targetdir,os.path.basename(filename)))
                     else:
+                        #Overwrite all / never option if isPlaylist?
+                        #continuedownload = xbmcgui.Dialog().select('File exists.', ['abort', 'download again', 'always overwrite', 'never overwrite'])
+
                         continuedownload = xbmcgui.Dialog().yesno('Continue downloading?', os.path.basename(filename)+' already exists!\nDelete and download again?', '')
                         if not continuedownload:
-                            LOG("File already exist in target directory, not overwriting", debug=True)
+                            LOG("Predownload: File already exist in target directory, not overwriting as requested", debug=True)
                             pDialog.close()
                             xbmcgui.Dialog().notification('youtube-dl','Download cancelled',os.path.join(addonFolder, "icon.png"),5000,True)
                             return False
                         else:
-                            LOG("Deleting existing file in target directory as requested", debug=True)
+                            LOG("Predownload: Deleting existing file in target directory as requested", debug=True)
                             xbmcvfs.delete(os.path.join(targetdir,os.path.basename(filename)))
 
                 #Continue downloading file
+                finalformat=''
                 if sys.version_info.major == 3:
                     pDialog.update(0, 'Downloading', 'Downloading '+title+' ...')
                     try:
@@ -520,7 +546,7 @@ class main():
                 if addon.getSetting('clean_filename') != 'false':
                     #cleaning filename
                     LOG("Cleaning up filename", debug=True)
-                    newfilename = re.sub('(?i)'+'\ ?[\[|\(](official )?(music )?video[\]|\)]\ ?', '', filename) 
+                    newfilename = re.sub('(?i)'+'\ ?[\[|\(](official )?(music )?video[\]|\)]', '', filename) 
                     LOG("Filename now: "+newfilename, debug=True)
                     if xbmcvfs.rename(filename, newfilename):
                         filename = newfilename
@@ -531,7 +557,7 @@ class main():
                     result = handleFinished(filename,title,targetdir,isPlaylist)
                     if result == False:
                         LOG("handlefinished false, retry query", debug=True)
-                        if not xbmcvfs.exists(file_path):
+                        if not xbmcvfs.exists(filename):
                             LOG("Source file does not exists, abandon move attempt", debug=True)
                             LOG("breaking post action loop", debug=True)
                             xbmcgui.Dialog().notification('youtube-dl error','missing source file, check logs...',os.path.join(addonFolder, "icon.png"),5000,True)
@@ -558,7 +584,7 @@ class main():
 
 
 def handleFinished(filename,title,targetdir,isPlaylist):
-    global pDialog
+    global pDialog, finalformat
     LOG("handlefinished function start", debug=True)
     LOG("final format "+finalformat, debug=True)
     if not finalformat == "":
@@ -574,17 +600,17 @@ def handleFinished(filename,title,targetdir,isPlaylist):
             LOG("Existing file has filesize of 0, deleting and continue", debug=True)
             xbmcvfs.delete(os.path.join(targetdir,os.path.basename(filename)))
         else:
-            LOG("Destination file already exists, not overwriting and aborting", debug=True)
+            LOG("handleFinished: Destination file already exists, not overwriting and aborting", debug=True)
             if sys.version_info.major == 3:
                 pDialog.update(100, 'youtube-dl target file already exists'+title)
             else:
                 pDialog.update(100, 'youtube-dl target file already exists'+title.decode('latin1'))
             xbmc.sleep(1000)
             pDialog.close()
-            delete = xbmcgui.Dialog().yesno('Move error - Delete temp file?','Target file already exists.\n'+os.path.basename(filename)+'\nDelete temp file?','')
+            delete = xbmcgui.Dialog().yesno('File exists - Delete temp file?','Target file already exists.\n'+os.path.basename(filename)+'\nDelete temp file?','')
             if delete:
                 xbmcvfs.delete(filename)
-                xbmcgui.Dialog().notification('youtube-dl deleted',title,os.path.join(addonFolder, "icon.png"),5000,True)
+                xbmcgui.Dialog().notification('youtube-dl temp deleted',title,os.path.join(addonFolder, "icon.png"),5000,True)
             return True
 
     LOG("handlefinished movefile call", debug=True)
@@ -597,7 +623,7 @@ def handleFinished(filename,title,targetdir,isPlaylist):
         xbmc.sleep(1000)
         pDialog.close()
         if not isPlaylist:
-            xbmcgui.Dialog().notification('youtube-dl finished',title,os.path.join(addonFolder, "icon.png"),5000,True)
+            xbmcgui.Dialog().notification('Video downloaded',title,os.path.join(addonFolder, "icon.png"),5000,True)
         return True
     else:
         LOG("handlefinished movefile failed", debug=True)
@@ -622,10 +648,10 @@ def moveFile(file_path, dest_path, filename=None):
             fileinfo_dst=xbmcvfs.Stat(destFilePath)
             fileinfo_dst_size=fileinfo_dst.st_size()
             if fileinfo_dst_size == 0:
-                LOG("Existing file has filesize of 0, deleting and continue", debug=True)
+                LOG("movefile: Existing file has filesize of 0, deleting and continue", debug=True)
                 xbmcvfs.delete(destFilePath)
             else:
-                LOG("Destination file already exists, not overwriting and aborting", debug=True)
+                LOG("movefile: Destination file already exists, not overwriting and aborting", debug=True)
                 return True
 
         #checking if configured target directory is writeable
@@ -644,7 +670,6 @@ def moveFile(file_path, dest_path, filename=None):
         LOG("DEBUG: file path    "+file_path, debug=True)
         LOG("DEBUG: destFilePath "+destFilePath, debug=True)
 
-        # xbmcvfs.copy(xbmc.translatePath(source), xbmc.translatePath(dest))
         copysuccess = False
         if xbmcvfs.copy(file_path, destFilePath):
             LOG ("Copied file to destination path", debug=True)

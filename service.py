@@ -12,7 +12,10 @@ from xml.etree import ElementTree as ET
 import shutil
 
 this_addon = xbmcaddon.Addon()
-addon_path = xbmc.translatePath(this_addon.getAddonInfo("path"))
+if sys.version_info.major == 3:
+    addon_path = xbmcvfs.translatePath(this_addon.getAddonInfo("path"))
+else:
+    addon_path = xbmc.translatePath(this_addon.getAddonInfo("path"))
 addonID = this_addon.getAddonInfo("id")
 addonFolder = this_addon.getAddonInfo("path")
 IDLE_TIME = 1 # 1 second
@@ -26,11 +29,16 @@ def add_context_youtube_dl_menu_button():
 
     global NEED_RESTART
     current_skin_id = xbmc.getSkinDir()
-    skin_folder_home = xbmc.translatePath("special://home/addons/" + current_skin_id)
+    if sys.version_info.major == 3:
+        skin_folder_home = xbmcvfs.translatePath("special://home/addons/" + current_skin_id)
+    else:
+        skin_folder_home = xbmc.translatePath("special://home/addons/" + current_skin_id)
     if not os.path.exists(skin_folder_home):
-        #skin_folder_system = xbmc.translatePath("special://xbmc/addons/" + current_skin)
         current_skin = xbmcaddon.Addon(current_skin_id)
-        skin_folder_system = xbmc.translatePath(current_skin.getAddonInfo("path"))
+        if sys.version_info.major == 3:
+            skin_folder_system = xbmcvfs.translatePath(current_skin.getAddonInfo("path"))
+        else:
+            skin_folder_system = xbmc.translatePath(current_skin.getAddonInfo("path"))
         if not os.path.exists(skin_folder_system):
             error("Couldn't find folder of skin " + current_skin_id)
             return False
@@ -108,7 +116,10 @@ def delete_context_youtube_dl_menu_icon():
     """
 
     current_skin_id = xbmc.getSkinDir()
-    skin_folder = xbmc.translatePath("special://home/addons/" + current_skin_id)
+    if sys.version_info.major == 3:
+        skin_folder = xbmcvfs.translatePath("special://home/addons/" + current_skin_id)
+    else:
+        skin_folder = xbmc.translatePath("special://home/addons/" + current_skin_id)
     res_folder = get_default_resolution_folder(skin_folder)
     if not res_folder:
         log_exception("Couldn't get default resolution folder for skin " + current_skin_id)
@@ -163,7 +174,10 @@ def image(filename):
     :rtype: str
     """
 
-    addon_folder = xbmc.translatePath(this_addon.getAddonInfo("path"))
+    if sys.version_info.major == 3:
+        addon_folder = xbmcvfs.translatePath(this_addon.getAddonInfo("path"))
+    else:
+        addon_folder = xbmc.translatePath(this_addon.getAddonInfo("path"))
     return os.path.join(addon_folder,
                         "resources",
                         "img",
@@ -330,7 +344,10 @@ def debug(content):
     :return: None
     """
     if type(content) is str:
-        message = unicode(content, "utf-8")
+        if sys.version_info.major == 3:
+            message = str(content, "utf-8")
+        else:
+            message = unicode(content, "utf-8")
     else:
         message = content
     log(message, xbmc.LOGDEBUG)
@@ -360,7 +377,10 @@ def notify(message):
     :return: None
     """
     icon = os.path.join(addonFolder, "icon.png")
-    xbmc.executebuiltin(unicode('XBMC.Notification(' + message + ',3000,' + icon + ')').encode("utf-8"))
+    if sys.version_info.major == 3:
+        xbmc.executebuiltin(str('XBMC.Notification(' + message + ',3000,' + icon + ')').encode("utf-8"))
+    else:
+        xbmc.executebuiltin(unicode('XBMC.Notification(' + message + ',3000,' + icon + ')').encode("utf-8"))
 
 def log_exception(content):
     """
@@ -370,7 +390,10 @@ def log_exception(content):
     """
 
     if type(content) is str:
-        message = unicode(content, "utf-8")
+        if sys.version_info.major == 3:
+            message = str(content, "utf-8")
+        else:
+            message = unicode(content, "utf-8")
     else:
         message = content
     log(message, xbmc.LOGERROR)
@@ -391,7 +414,10 @@ def log(msg, level=xbmc.LOGNOTICE):
     xbmc.LOGWARNING = 3
     """
 
-    log_message = u'{0}: {1}'.format(addonID, msg)
+    if sys.version_info.major == 3:
+        log_message = '{0}: {1}'.format(addonID, msg)
+    else:
+        log_message = u'{0}: {1}'.format(addonID, msg)
     xbmc.log(log_message.encode("utf-8"), level)
 
 

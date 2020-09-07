@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="context.youtube.dl.menu" version="1.2.1" name="youtube-dl Context Menu" provider-name="wuff">
+<addon id="context.youtube.dl.menu" version="1.2.3" name="youtube-dl Context Menu" provider-name="wuff">
     <requires>
         <!-- <import addon="xbmc.python" version="3.0.0"/> -->
         <import addon="plugin.video.youtube" version="5.4.0"/>
@@ -48,10 +48,20 @@
     </extension>
     <extension point="xbmc.addon.metadata">
         <news>
+1.2.3 (2020-09-07)
+------------------
+- Change xbmc.translatePath to xbmcvfs.translatePath for Kodi 19
+
+1.2.2 (2020-07-04)
+------------------
+- Change log levels for Kodi 19
+
 1.2.1 (2020-07-03)
 ------------------
 - Remove non-existing info fields from playlist download function
 - Use regex for filename cleanup
+- Further fix to failed move due to format extension not identified properly in newer ffmpeg version
+- Prevent video download notification during playback when downloading whole playlist 
 
 1.2.0 (2020-06-27)
 ------------------
@@ -71,7 +81,7 @@
 
 1.1.7 (2020-03-15)
 ------------------
-- Added alternative file copy method when xbmc.vfscopy fails
+- Added alternative file copy method when xbmcvfs.copy fails
 - bump python requirement to 3.0.0 as now required by Kodi 19. This breaks backwards compatibility!
 - Improved error handling when video not available
 
@@ -130,6 +140,6 @@ Adds 'record' button to Video OSD while youtube videos are playing.</description
         <platform>all</platform>
         <license>GNU GENERAL PUBLIC LICENSE. Version 3, 29 June 2007</license>
         <website>https://github.com/AnonTester/</website>
-        <source>https://github.com/AnonTester/kodi-repo/context.youtube.dl.menu</source>
+        <source>https://github.com/AnonTester/context.youtube.dl.menu</source>
     </extension>
 </addon>
