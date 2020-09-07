@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import sys, os, traceback, subprocess
 #from lib.yd_private_libs import util, servicecontrol, updater
 import xbmc
+import xbmcvfs
 import xbmcgui
 import xbmcaddon
 import re
