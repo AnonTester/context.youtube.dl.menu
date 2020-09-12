@@ -400,19 +400,17 @@ def log_exception(content):
     log(message, xbmc.LOGERROR)
 
 
-def log(msg, level=xbmc.LOGNOTICE):
+def log(msg, level=xbmc.LOGINFO):
     """
     Outputs message to log file
     :param msg: message to output
     :param level: debug levelxbmc. Values:
     xbmc.LOGDEBUG = 0
-    xbmc.LOGERROR = 4
-    xbmc.LOGFATAL = 6
+    xbmc.LOGERROR = 3
+    xbmc.LOGFATAL = 4
     xbmc.LOGINFO = 1
-    xbmc.LOGNONE = 7
-    xbmc.LOGNOTICE = 2
-    xbmc.LOGSEVERE = 5
-    xbmc.LOGWARNING = 3
+    xbmc.LOGNONE = 5
+    xbmc.LOGWARNING = 2
     """
 
     if sys.version_info.major == 3:
