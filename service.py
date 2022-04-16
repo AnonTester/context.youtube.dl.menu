@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import sys, os, traceback, subprocess
-#from lib.yd_private_libs import util, servicecontrol, updater
+# from lib.yd_private_libs import util, servicecontrol, updater
 import xbmc
 import xbmcvfs
 import xbmcgui
@@ -19,7 +19,8 @@ else:
     addon_path = xbmc.translatePath(this_addon.getAddonInfo("path"))
 addonID = this_addon.getAddonInfo("id")
 addonFolder = this_addon.getAddonInfo("path")
-IDLE_TIME = 1 # 1 second
+IDLE_TIME = 1  # 1 second
+
 
 def add_context_youtube_dl_menu_button():
     """
@@ -60,7 +61,7 @@ def add_context_youtube_dl_menu_button():
         error("Couldn't get default resolution folder for skin " + current_skin_id)
         return False
 
-    #patching VideoOSD.xml
+    # patching VideoOSD.xml
     videoosdxml_path = os.path.join(skin_folder_home, res_folder, "VideoOSD.xml")
     try:
         with io.open(videoosdxml_path, "r", encoding="utf-8") as videoosdxml:
@@ -73,7 +74,8 @@ def add_context_youtube_dl_menu_button():
         NEED_RESTART = False
         return True
     context_youtube_dl_menu_button_text = get_context_youtube_dl_menu_button_text()
-    new_text = old_text.replace("<control type=\"radiobutton\" id=\"70043\">", context_youtube_dl_menu_button_text + "<control type=\"radiobutton\" id=\"70043\">")
+    new_text = old_text.replace("<control type=\"radiobutton\" id=\"70043\">",
+                                context_youtube_dl_menu_button_text + "<control type=\"radiobutton\" id=\"70043\">")
     try:
         with io.open(videoosdxml_path, "w", encoding="utf-8") as videoosdxml:
             videoosdxml.write(new_text)
@@ -82,7 +84,7 @@ def add_context_youtube_dl_menu_button():
         log_exception(str(e))
         return False
 
-    #patching Variables.xml
+    # patching Variables.xml
     variablesxml_path = os.path.join(skin_folder_home, res_folder, "Variables.xml")
     try:
         with io.open(variablesxml_path, "r", encoding="utf-8") as variablesxml:
@@ -95,7 +97,8 @@ def add_context_youtube_dl_menu_button():
         NEED_RESTART = False
         return True
     context_youtube_dl_menu_button_help_text = get_context_youtube_dl_menu_button_help_text()
-    new_text = old_help_text.replace("<value condition=\"Control.HasFocus(70043)\">", context_youtube_dl_menu_button_help_text + "<value condition=\"Control.HasFocus(70043)\">")
+    new_text = old_help_text.replace("<value condition=\"Control.HasFocus(70043)\">",
+                                     context_youtube_dl_menu_button_help_text + "<value condition=\"Control.HasFocus(70043)\">")
     try:
         with io.open(variablesxml_path, "w", encoding="utf-8") as variablesxml:
             variablesxml.write(new_text)
@@ -103,7 +106,6 @@ def add_context_youtube_dl_menu_button():
         error("Couldn't write to skin folder")
         log_exception(str(e))
         return False
-
 
     if not NEED_RESTART:
         xbmc.executebuiltin("ReloadSkin()")
@@ -145,7 +147,7 @@ def delete_context_youtube_dl_menu_icon():
         log_exception("Couldn't write to skin VideoOSD.xml")
         log_exception(str(e))
 
-    #removing help variable
+    # removing help variable
     variablesxml_path = os.path.join(skin_folder, res_folder, "Variables.xml")
     with io.open(variablesxml_path, "r", encoding="utf-8") as variablesxml:
         old_text = variablesxml.read()
@@ -165,6 +167,7 @@ def delete_context_youtube_dl_menu_icon():
     except Exception as e:
         log_exception("Couldn't write to skin Variables.xml")
         log_exception(str(e))
+
 
 def image(filename):
     """
@@ -229,7 +232,7 @@ def get_default_resolution_folder(skin_folder):
             if child.attrib.get("point", "") == "xbmc.gui.skin":
                 for child2 in child:
                     if child2.tag == "res":
-                        if child2.attrib.get("aspect","") == aspect_ratio:
+                        if child2.attrib.get("aspect", "") == aspect_ratio:
                             return child2.attrib.get("folder", None)
                         if child2.attrib.get("default", "") == "true":
                             default = child2.attrib.get("folder", None)
@@ -242,6 +245,7 @@ def get_context_youtube_dl_menu_button_text():
     with io.open(path, "r", encoding="utf-8") as context_youtube_dl_menu_button_template:
         text = context_youtube_dl_menu_button_template.read()
     return text
+
 
 def get_context_youtube_dl_menu_button_help_text():
     path = os.path.join(addon_path, "YoutubeButton_Help.txt")
@@ -266,7 +270,7 @@ def start_service():
     if result and NEED_RESTART:
         question = xbmcgui.Dialog()
         if question.yesno("Need restart",
-                       "To enable the youtube dl button in the Video OSD, you need to restart Kodi. Exit now?"):
+                          "To enable the youtube dl button in the Video OSD, you need to restart Kodi. Exit now?"):
             xbmc.executebuiltin("Quit()")
 
     monitor = xbmc.Monitor()
@@ -293,7 +297,7 @@ def set_setting_value(name, value):
     command = '{"jsonrpc":"2.0", "id":1, ' \
               '"method":"Settings.SetSettingValue",' \
               '"params":{"setting":"' + name + '",' \
-              '"value":' + str_value + '}}'
+                                               '"value":' + str_value + '}}'
     try:
         xbmc.executeJSONRPC(command)
     except Exception as e:
@@ -302,6 +306,7 @@ def set_setting_value(name, value):
         log_exception(str(e))
         return False
     return True
+
 
 def get_setting(name):
     """
@@ -338,6 +343,7 @@ def get_setting(name):
     else:
         return None
 
+
 def debug(content):
     """
     Outputs content to log file
@@ -353,6 +359,7 @@ def debug(content):
         message = content
     log(message, xbmc.LOGDEBUG)
 
+
 def error(message):
     """
     Opens notification window with error message
@@ -360,6 +367,7 @@ def error(message):
     :return: None
     """
     notify("Error:," + message)
+
 
 def info(message):
     """
@@ -382,6 +390,7 @@ def notify(message):
         xbmc.executebuiltin(str('XBMC.Notification(' + message + ',3000,' + icon + ')').encode("utf-8"))
     else:
         xbmc.executebuiltin(unicode('XBMC.Notification(' + message + ',3000,' + icon + ')').encode("utf-8"))
+
 
 def log_exception(content):
     """
@@ -425,4 +434,3 @@ YTDL_MENU_BUTTON_END_TEXT = "<!-- context.youtube.dl.menu_end -->"
 NEED_RESTART = False
 
 start_service()
-
