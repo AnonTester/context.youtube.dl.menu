@@ -61,7 +61,7 @@ except ImportError:
 try:
     import youtube_dl
 except:
-    util.ERROR('Failed to import youtube-dl')
+    xbmc.log('context.youtube.dl.menu: Failed to import youtube-dl', xbmc.LOGINFO)
     youtube_dl = None
 
 perc = 0
@@ -256,7 +256,7 @@ class main():
             LOG(repr(ydl_info), debug=True)
 
             LOG(repr(ydl_info['entries']), debug=True)
-            amt = len(ydl_info['entries']);
+            amt = len(ydl_info['entries'])
             LOG("Entries: " + str(amt), debug=True)
 
             if amt > 10:
@@ -565,7 +565,7 @@ class main():
 
                 # Continue downloading file
                 # note finalformat may not actually be final format if formats need to be merged!
-                finalformat = os.path.splitext(filename)[1]
+                finalformat = os.path.splitext(filename)[1][1:]
                 if sys.version_info.major == 3:
                     pDialog.update(0, 'Downloading', 'Downloading ' + title + ' ...')
                     try:
@@ -656,7 +656,7 @@ def handleFinished(filename, title, targetdir, isPlaylist):
         fileinfo_dst = xbmcvfs.Stat(os.path.join(targetdir, os.path.basename(filename)))
         fileinfo_dst_size = fileinfo_dst.st_size
         if fileinfo_dst_size == 0:
-            LOG("Existing file has filesize of 0, deleting and continue", debug=True)
+            LOG("Existing file has size of 0, deleting and continue", debug=True)
             xbmcvfs.delete(os.path.join(targetdir, os.path.basename(filename)))
         else:
             LOG("handleFinished: Destination file already exists, not overwriting and aborting", debug=True)
@@ -726,8 +726,8 @@ def moveFile(file_path, dest_path, filename=None):
             xbmcvfs.delete(destFilePath + ".txt")
         else:
             LOG("Destination path " + destFilePath + " not writeable, aborting", debug=True)
-            xbmcgui.Dialog().notification('youtube-dl move path not writeable', os.path.join(addonFolder, "icon.png"),
-                                          5000, True)
+            xbmcgui.Dialog().notification('youtube-dl move path not writeable', '',
+                                          os.path.join(addonFolder, "icon.png"), 5000, True)
             return False
 
         LOG("DEBUG: file path    " + file_path, debug=True)
